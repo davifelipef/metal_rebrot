@@ -453,43 +453,44 @@ var DotMoveSystem;
                 throw new Error(`${this._value} is not found`);
             }
         }
-        toDirection4(lastDirection) {
-            const t = Math.round(this._value / 45);
-            if (t === 0 || t === 8) {
-                return 8;
-            }
-            else if (t === 1) {
-                if (lastDirection === 8)
-                    return 8;
-                return 6;
-            }
-            else if (t === 2) {
-                return 6;
-            }
-            else if (t === 3) {
-                if (lastDirection === 6)
-                    return 6;
-                return 2;
-            }
-            else if (t === 4) {
-                return 2;
-            }
-            else if (t === 5) {
-                if (lastDirection === 2)
-                    return 2;
-                return 4;
-            }
-            else if (t === 6) {
-                return 4;
-            }
-            else if (t === 7) {
-                if (lastDirection === 4)
-                    return 4;
-                return 8;
-            }
-            else {
-                throw new Error(`${this._value} is not found`);
-            }
+        // Code updated
+        toDirection4(lastDirection) { 
+            const t = Math.round(this._value / 45); 
+            if (t === 0 || t === 8) { // cima
+                return 8; // Era 8
+            } 
+            else if (t === 1) { // cima-direita
+                if (lastDirection === 8) 
+                    return 6; // Era 8
+                return 6; // Era 6 
+            } 
+            else if (t === 2) { // direita
+                return 6; 
+            } 
+            else if (t === 3) { // baixo-direita
+                if (lastDirection === 6) 
+                    return 6; 
+                return 6; // Era 2
+            } 
+            else if (t === 4) { // baixo
+                return 2; 
+            } 
+            else if (t === 5) { //baixo-esquerda
+                if (lastDirection === 2) 
+                    return 4; // Era 2
+                return 4; 
+            } 
+            else if (t === 6) { // esquerda
+                return 4; 
+            } 
+            else if (t === 7) { // cima-esquerda
+                if (lastDirection === 4) 
+                    return 4; 
+                return 4; // Era 8
+            } 
+            else { 
+                throw new Error(`${this._value} is not found`); 
+            } 
         }
     }
     Degree.UP = new Degree(0);
