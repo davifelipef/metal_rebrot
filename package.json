@@ -4,8 +4,8 @@
     "chromium-args": "--force-color-profile=srgb --disable-devtools",
     "window": {
         "title": "Project 1",
-        "width": 2448,
-        "height": 1872,
+        "width": 816,
+        "height": 624,
         "position": "center",
         "icon": "icon/icon.png"
     }
