@@ -12,7 +12,7 @@ null,
 {"id":10,"expanded":false,"name":"template_skill","order":2,"parentId":1,"scrollX":786.6666666666666,"scrollY":548},
 {"id":11,"expanded":false,"name":"sample map 2","order":10,"parentId":8,"scrollX":825.3333333333334,"scrollY":470},
 {"id":12,"expanded":false,"name":"Tutorial 4","order":8,"parentId":5,"scrollX":928.5,"scrollY":528.75},
-{"id":13,"expanded":true,"name":"Mapa Mundi","order":17,"parentId":0,"scrollX":7994,"scrollY":2629.5,"quick":false},
+{"id":13,"expanded":true,"name":"Mapa Mundi","order":17,"parentId":0,"scrollX":2807,"scrollY":2470.5,"quick":false},
 {"id":14,"expanded":true,"name":"sample map 3","order":11,"parentId":8,"scrollX":825.3333333333334,"scrollY":459.3333333333333},
 {"id":15,"expanded":true,"name":"template_other","order":3,"parentId":1,"scrollX":825.3333333333334,"scrollY":470},
 {"id":16,"expanded":true,"name":"sample map 4","order":12,"parentId":8,"scrollX":833.3333333333334,"scrollY":470},
@@ -20,6 +20,6 @@ null,
 {"id":18,"expanded":false,"name":"sample map 6","order":14,"parentId":8,"scrollX":825.3333333333334,"scrollY":470},
 {"id":19,"expanded":false,"name":"Navio","order":22,"parentId":13,"scrollX":1506,"scrollY":1140,"quick":false},
 {"id":20,"expanded":false,"name":"Floresta Negra","order":20,"parentId":13,"scrollX":2520,"scrollY":1404,"quick":false},
-{"id":21,"expanded":false,"name":"Nersograd","order":18,"parentId":13,"scrollX":1400,"scrollY":758.6666666666666,"quick":false},
-{"id":22,"expanded":false,"name":"Bar","order":19,"parentId":21,"scrollX":816,"scrollY":640,"quick":false}
+{"id":21,"expanded":true,"name":"Nersograd","order":18,"parentId":13,"scrollX":1799.9999999999998,"scrollY":975.4285714285713,"quick":false},
+{"id":22,"expanded":false,"name":"Bar","order":19,"parentId":21,"scrollX":525,"scrollY":340.5,"quick":false}
 ]
