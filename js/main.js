@@ -143,7 +143,11 @@ class Main {
     initEffekseerRuntime() {
         const onLoad = this.onEffekseerLoad.bind(this);
         const onError = this.onEffekseerError.bind(this);
-        effekseer.initRuntime(effekseerWasmUrl, onLoad, onError);
+        //effekseer.initRuntime(effekseerWasmUrl, onLoad, onError);
+        // Garante que PIXI/WebGL já estabilizou antes do Effekseer mexer no contexto
+        requestAnimationFrame(() => {
+            effekseer.initRuntime(effekseerWasmUrl, onLoad, onError);
+        });
     }
 
     onEffekseerLoad() {
