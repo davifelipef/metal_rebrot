@@ -1030,14 +1030,25 @@ Graphics._cancelFullScreen = function() {
 Graphics._createPixiApp = function() {
     try {
         this._setupPixi();
+
         this._app = new PIXI.Application({
             view: this._canvas,
-            autoStart: false
+            autoStart: false,
+            forceCanvas: false,
+            powerPreference: "high-performance",
+            antialias: false,
+            backgroundAlpha: 1
         });
+
+        // IMPORTANTE: evita render duplicado no loop interno do PIXI
+        this._app.ticker.stop();
+
+        // mantém integração com o loop do RPG Maker
         this._app.ticker.remove(this._app.render, this._app);
         this._app.ticker.add(this._onTick, this);
+
     } catch (e) {
-        console.error(e); // DEBUG
+        console.error("PIXI init error:", e);
         this._app = null;
     }
 };
