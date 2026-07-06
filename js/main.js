@@ -64,7 +64,8 @@ class Main {
     }
 
     loadMainScripts() {
-        // Carregamento sequencial simples para garantir ordem correta
+        /* STREAMING_CHUNK:Iniciando carregamento sequencial de scripts */
+        // Carregamento sequencial para garantir que os scripts core carreguem antes do setup
         let index = 0;
         const loadNext = () => {
             if (index < scriptUrls.length) {
@@ -78,7 +79,11 @@ class Main {
                 script._url = scriptUrls[index];
                 document.body.appendChild(script);
             } else {
+                /* STREAMING_CHUNK:Configurando plugins e inicializando jogo */
+                // A inicialização do PluginManager deve ocorrer apenas após o carregamento total
                 PluginManager.setup($plugins);
+                // Garantir que a inicialização do jogo ocorra após o setup dos plugins
+                this.onAllScriptsLoaded();
             }
         };
         loadNext();
