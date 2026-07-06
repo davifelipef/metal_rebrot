@@ -64,18 +64,24 @@ class Main {
     }
 
     loadMainScripts() {
-        for (const url of scriptUrls) {
-            const script = document.createElement("script");
-            script.type = "text/javascript";
-            script.src = url;
-            script.async = false;
-            script.defer = true;
-            script.onload = this.onScriptLoad.bind(this);
-            script.onerror = this.onScriptError.bind(this);
-            script._url = url;
-            document.body.appendChild(script);
-        }
-        this.numScripts = scriptUrls.length;
+        // Carregamento sequencial simples para garantir ordem correta
+        let index = 0;
+        const loadNext = () => {
+            if (index < scriptUrls.length) {
+                const script = document.createElement("script");
+                script.src = scriptUrls[index];
+                script.onload = () => {
+                    index++;
+                    loadNext();
+                };
+                script.onerror = this.onScriptError.bind(this);
+                script._url = scriptUrls[index];
+                document.body.appendChild(script);
+            } else {
+                PluginManager.setup($plugins);
+            }
+        };
+        loadNext();
         window.addEventListener("load", this.onWindowLoad.bind(this));
         window.addEventListener("error", this.onWindowError.bind(this));
     }
