@@ -1027,7 +1027,7 @@ Graphics._cancelFullScreen = function() {
     }
 };
 
-/*Graphics._createPixiApp = function() {
+Graphics._createPixiApp = function() {
     try {
         this._setupPixi();
 
@@ -1049,44 +1049,6 @@ Graphics._cancelFullScreen = function() {
 
     } catch (e) {
         console.error("PIXI init error:", e);
-        this._app = null;
-    }
-};*/
-
-Graphics._createPixiApp = function() {
-    try {
-        this._setupPixi();
-
-        // 🔥 cria renderer manual (sem autoDetectRenderer)
-        this._renderer = new PIXI.Renderer({
-            view: this._canvas,
-            width: this._width || Graphics.boxWidth,
-            height: this._height || Graphics.boxHeight,
-            backgroundAlpha: 1,
-            antialias: false,
-            powerPreference: "high-performance",
-            clearBeforeRender: true
-        });
-
-        // estrutura mínima equivalente ao PIXI.Application
-        this._app = {
-            renderer: this._renderer,
-            stage: new PIXI.Container()
-        };
-
-        // ticker manual (RPG Maker controla o loop)
-        this._ticker = PIXI.Ticker.shared;
-        this._ticker.stop(); // evita conflito com loop interno do PIXI
-
-        this._ticker.remove(this._renderer.render, this._renderer);
-        this._ticker.add(() => {
-            this._onTick();
-            this._renderer.render(this._app.stage);
-        });
-
-    } catch (e) {
-        console.error("PIXI Renderer init error:", e);
-        this._renderer = null;
         this._app = null;
     }
 };
