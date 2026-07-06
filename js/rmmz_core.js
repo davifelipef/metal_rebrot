@@ -523,6 +523,11 @@ Graphics.initialize = function() {
     this._createPixiApp();
     this._createEffekseerContext();
 
+    // DEBUG
+    console.log("PIXI =", PIXI);
+    console.log("Application =", PIXI.Application);
+    console.log("this._app =", this._app);
+
     return !!this._app;
 };
 
@@ -1032,6 +1037,7 @@ Graphics._createPixiApp = function() {
         this._app.ticker.remove(this._app.render, this._app);
         this._app.ticker.add(this._onTick, this);
     } catch (e) {
+        console.error(e); // DEBUG
         this._app = null;
     }
 };
