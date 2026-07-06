@@ -82,6 +82,7 @@ class Main {
 
     onScriptLoad() {
         if (++this.loadCount === this.numScripts) {
+            PIXI.utils.isWebGLSupported = () => true; // fix for GitHub Pages
             PluginManager.setup($plugins);
         }
     }
