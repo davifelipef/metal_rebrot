@@ -1,102 +1,88 @@
 class VisionVisualizer {
     static initialize() {
-        this._sprites = [];
-        this._visionLayer = null; // Armazena a camada
+        this._graphicsMap = new Map(); // Associa cada Evento a 1 PIXI.Graphics
+        this._visionLayer = null;
     }
 
     static clear() {
-        // Remove apenas os sprites dos cones, não a camada inteira
-        for (const sprite of this._sprites) {
-            sprite.destroy();
+        for (const [event, graphics] of this._graphicsMap.entries()) {
+            graphics.destroy();
         }
-        this._sprites = [];
+        this._graphicsMap.clear();
     }
 
-    static draw(event, cone, spriteset) {
-        // 1. Garante que a camada exista e esteja no lugar certo
-        this.ensureVisionLayer(spriteset);
-
-        const tileWidth = $gameMap.tileWidth();
-        const tileHeight = $gameMap.tileHeight();
-        const tiles = cone.tiles();
-
-        for (const tile of tiles) {
-            const bitmap = new Bitmap(tileWidth, tileHeight);
-            // Cor vermelha semi-transparente para o cone
-            bitmap.fillRect(0, 0, tileWidth, tileHeight, "rgba(255, 0, 0, 0.35)");
-
-            const sprite = new Sprite(bitmap);
-            sprite._event = event;
-            sprite._offsetX = tile.x;
-            sprite._offsetY = tile.y;
-
-            // Define o ponto de origem no centro do tile para facilitar o posicionamento
-            sprite.anchor.x = 0.5;
-            sprite.anchor.y = 0.5;
-
-            this.updateSpritePosition(sprite);
-
-            this._visionLayer.addChild(sprite);
-            this._sprites.push(sprite);
-        }
-    }
-
-    // Nova função para gerenciar a criação e posicionamento da camada
     static ensureVisionLayer(spriteset) {
         if (!this._visionLayer || !this._visionLayer.parent) {
             this._visionLayer = new Sprite();
-            
-            // Adiciona ao spriteset (Cenário), não ao tilemap.
-            // Isso evita problemas de Z-index complexos do tilemap.
             spriteset.addChild(this._visionLayer);
-            
-            // Define o Z alto o suficiente para ficar acima dos tiles, 
-            // mas o RPG Maker MZ gerencia a ordem dos personagens separadamente.
-            // Z=1 geralmente coloca acima da maioria dos tiles de chão/camada baixa.
-            this._visionLayer.z = 1; 
-
-            console.log("Vision Layer created and added to Spriteset.");
+            this._visionLayer.z = 1;
         }
     }
 
-    static updateSpritePosition(sprite) {
+    static draw(event, cone, spriteset) {
+        this.ensureVisionLayer(spriteset);
+
+        let graphics = this._graphicsMap.get(event);
+        if (!graphics) {
+            graphics = new PIXI.Graphics();
+            graphics._event = event;
+            this._visionLayer.addChild(graphics);
+            this._graphicsMap.set(event, graphics);
+        }
+
+        graphics._cone = cone;
+        this.redrawCone(graphics);
+        this.updateGraphicsPosition(graphics);
+    }
+
+    static redrawCone(graphics) {
         const tileWidth = $gameMap.tileWidth();
         const tileHeight = $gameMap.tileHeight();
+        const tiles = graphics._cone.tiles();
 
-        // Posição no mapa (em tiles)
-        const mapX = sprite._event.x + sprite._offsetX;
-        const mapY = sprite._event.y + sprite._offsetY;
+        // Limpa desenhos anteriores sem recriar objetos na memória
+        graphics.clear();
+        graphics.beginFill(0xFF0000, 0.35); // Vermelho com 35% de opacidade
 
-        // Converte coordenada do mapa para coordenada de tela ajustada (Scroll)
-        // Como a camada é filha do Spriteset (que não rola), precisamos ajustar.
-        sprite.x = $gameMap.adjustX(mapX) * tileWidth + tileWidth / 2;
-        sprite.y = $gameMap.adjustY(mapY) * tileHeight + tileHeight / 2;
-        
-        // Esconde o sprite se ele estiver fora da tela (otimização)
-        sprite.visible = sprite.x >= -tileWidth && sprite.x <= Graphics.width + tileWidth &&
-                         sprite.y >= -tileHeight && sprite.y <= Graphics.height + tileHeight;
+        for (const tile of tiles) {
+            // Desenha os retângulos relativos ao ponto de origem do evento (0,0)
+            graphics.drawRect(
+                tile.x * tileWidth,
+                tile.y * tileHeight,
+                tileWidth,
+                tileHeight
+            );
+        }
+
+        graphics.endFill();
+    }
+
+    static updateGraphicsPosition(graphics) {
+        const tileWidth = $gameMap.tileWidth();
+        const tileHeight = $gameMap.tileHeight();
+        const event = graphics._event;
+
+        // Posição base do evento ajustada para a tela
+        graphics.x = $gameMap.adjustX(event.x) * tileWidth;
+        graphics.y = $gameMap.adjustY(event.y) * tileHeight;
+    }
+
+    static refresh(event, cone, spriteset) {
+        const graphics = this._graphicsMap.get(event);
+        if (graphics) {
+            graphics._cone = cone;
+            this.redrawCone(graphics);
+            this.updateGraphicsPosition(graphics);
+        } else {
+            this.draw(event, cone, spriteset);
+        }
     }
 
     static update() {
         if (!this._visionLayer) return;
-        for (const sprite of this._sprites) {
-            this.updateSpritePosition(sprite);
+        for (const graphics of this._graphicsMap.values()) {
+            this.updateGraphicsPosition(graphics);
         }
-    }
-
-    static refresh(event, cone, spriteset) {
-        // 1. Remove os sprites antigos do inimigo
-        this._sprites = this._sprites.filter(sprite => {
-            if (sprite._event === event) {
-                sprite.parent?.removeChild(sprite);
-                sprite.destroy();
-                return false; // Remove da lista de sprites
-            }
-            return true; // Mantém os sprites dos outros inimigos
-        });
-
-        // 2. Desenha o novo cone com as coordenadas/direção atualizadas
-        this.draw(event, cone, spriteset);
     }
 }
 
