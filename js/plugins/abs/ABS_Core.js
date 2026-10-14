@@ -52,7 +52,12 @@ window.ABS_DEBUG_VISION = true;
                 const config = EnemyConfig.fromComments(comments);
 
                 if (config.isEnemy) {
-                    const cone = new VisionCone(config.vision, event.direction());
+                    // Onde você cria o cone no scanEnemies() e no update():
+                    const cone = new VisionCone(
+                        config.vision, 
+                        event.direction(), 
+                        event // <--- Passamos o evento aqui!
+                    );
 
                     this._enemies.push({
                         event: event,
