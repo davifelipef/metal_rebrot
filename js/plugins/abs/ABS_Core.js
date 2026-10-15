@@ -11,27 +11,32 @@
  */
 
 // Flag global configurável diretamente no código ou via parâmetros do plugin
-window.ABS_DEBUG_VISION = true; 
+window.ABS_DEBUG_VISION = true;
 
 (() => {
     console.log("ABS Core loaded");
 
     const pluginName = "ABS_Core";
     const parameters = PluginManager.parameters(pluginName);
+
     if (parameters["debugVision"] !== undefined) {
         window.ABS_DEBUG_VISION = parameters["debugVision"] === "true";
     }
 
     const _Scene_Map_start = Scene_Map.prototype.start;
+
     Scene_Map.prototype.start = function() {
         _Scene_Map_start.call(this);
         ABS_Core.scanEnemies();
     };
 
     const _Scene_Map_update = Scene_Map.prototype.update;
+
     Scene_Map.prototype.update = function() {
         _Scene_Map_update.call(this);
+
         ABS_Core.update();
+
         if (window.ABS_DEBUG_VISION) {
             VisionVisualizer.update();
         }
@@ -45,37 +50,43 @@ window.ABS_DEBUG_VISION = true;
             this._enemies = [];
 
             $gameMap.events().forEach(event => {
-                const comments = event.event().pages[0].list
+                const page = event.event().pages[event._pageIndex];
+
+                if (!page) {
+                    return;
+                }
+
+                const comments = page.list
                     .filter(cmd => cmd.code === 108 || cmd.code === 408)
                     .map(cmd => cmd.parameters[0]);
 
                 const config = EnemyConfig.fromComments(comments);
 
-                if (config.isEnemy) {
-                    // Onde você cria o cone no scanEnemies() e no update():
-                    const cone = new VisionCone(
-                        config.vision, 
-                        event.direction(), 
-                        event // <--- Passamos o evento aqui!
+                if (!config.isEnemy) {
+                    return;
+                }
+
+                const cone = new VisionCone(
+                    config.vision,
+                    event.direction(),
+                    event
+                );
+
+                this._enemies.push({
+                    event: event,
+                    config: config,
+                    x: event.x,
+                    y: event.y,
+                    direction: event.direction(),
+                    isChasing: false
+                });
+
+                if (window.ABS_DEBUG_VISION) {
+                    VisionVisualizer.draw(
+                        event,
+                        cone,
+                        SceneManager._scene._spriteset
                     );
-
-                    this._enemies.push({
-                        event: event,
-                        config: config,
-                        x: event.x,
-                        y: event.y,
-                        direction: event.direction(),
-                        isChasing: false
-                    });
-
-                    // Desenha o visual apenas se a flag estiver ligada
-                    if (window.ABS_DEBUG_VISION) {
-                        VisionVisualizer.draw(
-                            event,
-                            cone,
-                            SceneManager._scene._spriteset
-                        );
-                    }
                 }
             });
         },
@@ -83,12 +94,18 @@ window.ABS_DEBUG_VISION = true;
         update() {
             for (const enemy of this._enemies) {
                 const event = enemy.event;
-                const cone = new VisionCone(enemy.config.vision, event.direction());
+
+                const cone = new VisionCone(
+                    enemy.config.vision,
+                    event.direction(),
+                    event
+                );
 
                 const relX = $gamePlayer.x - event.x;
                 const relY = $gamePlayer.y - event.y;
 
-                // A detecção matemática funciona INDEPENDENTE da camada visual!
+                // Verifica se o jogador está dentro do cone
+                // e se existe linha de visão desobstruída.
                 const canSeePlayer = cone.contains(relX, relY);
 
                 if (canSeePlayer) {
@@ -98,25 +115,37 @@ window.ABS_DEBUG_VISION = true;
                 if (enemy.isChasing) {
                     event.moveTowardPlayer();
 
-                    const dist = Math.abs(relX) + Math.abs(relY);
+                    const dist =
+                        Math.abs($gamePlayer.x - event.x) +
+                        Math.abs($gamePlayer.y - event.y);
+
                     if (dist > enemy.config.vision + 2) {
                         enemy.isChasing = false;
                     }
                 }
 
-                if (
+                const positionChanged =
                     enemy.x !== event.x ||
-                    enemy.y !== event.y ||
-                    enemy.direction !== event.direction()
-                ) {
+                    enemy.y !== event.y;
+
+                const directionChanged =
+                    enemy.direction !== event.direction();
+
+                if (positionChanged || directionChanged) {
                     enemy.x = event.x;
                     enemy.y = event.y;
                     enemy.direction = event.direction();
 
                     if (window.ABS_DEBUG_VISION) {
+                        const updatedCone = new VisionCone(
+                            enemy.config.vision,
+                            event.direction(),
+                            event
+                        );
+
                         VisionVisualizer.refresh(
                             event,
-                            cone,
+                            updatedCone,
                             SceneManager._scene._spriteset
                         );
                     }
