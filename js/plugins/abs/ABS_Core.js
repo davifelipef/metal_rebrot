@@ -117,12 +117,14 @@ window.ABS_DEBUG_VISION = true;
                     enemy.isChasing = true;
                 }
 
-                const dist =
-                    Math.abs($gamePlayer.x - event.x) +
-                    Math.abs($gamePlayer.y - event.y);
+                const dx = Math.abs($gamePlayer.x - event.x);
+                const dy = Math.abs($gamePlayer.y - event.y);
+
+                const dist = dx + dy;
+                const attackDistance = Math.max(dx, dy);
 
                 if (enemy.isChasing && !isOnCooldown) {
-                    if (dist <= enemy.config.attackRange) {
+                    if (attackDistance <= enemy.config.attackRange) {
                         EnemyAttack.tryAttack(enemy, $gamePlayer);
                     } else {
                         event.moveTowardPlayer();

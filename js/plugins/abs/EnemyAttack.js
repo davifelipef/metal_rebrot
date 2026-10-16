@@ -316,9 +316,9 @@
                 return false;
             }
 
-            const distance =
-                Math.abs(player.x - enemy.event.x) +
-                Math.abs(player.y - enemy.event.y);
+            const dx = Math.abs(player.x - enemy.event.x);
+            const dy = Math.abs(player.y - enemy.event.y);
+            const distance = Math.max(dx, dy);
 
             const range = Math.max(
                 0,
