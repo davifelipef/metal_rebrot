@@ -75,6 +75,7 @@ window.ABS_DEBUG_VISION = true;
                 this._enemies.push({
                     event: event,
                     config: config,
+                    hp: config.hp,
                     x: event.x,
                     y: event.y,
                     direction: event.direction(),
@@ -95,6 +96,10 @@ window.ABS_DEBUG_VISION = true;
             for (const enemy of this._enemies) {
                 const event = enemy.event;
 
+                // Atualiza os temporizadores do ataque.
+                // Enquanto estiver em recarga, o inimigo não se movimenta.
+                const isOnCooldown = EnemyAttack.update(enemy);
+
                 const cone = new VisionCone(
                     enemy.config.vision,
                     event.direction(),
@@ -112,12 +117,16 @@ window.ABS_DEBUG_VISION = true;
                     enemy.isChasing = true;
                 }
 
-                if (enemy.isChasing) {
-                    event.moveTowardPlayer();
+                const dist =
+                    Math.abs($gamePlayer.x - event.x) +
+                    Math.abs($gamePlayer.y - event.y);
 
-                    const dist =
-                        Math.abs($gamePlayer.x - event.x) +
-                        Math.abs($gamePlayer.y - event.y);
+                if (enemy.isChasing && !isOnCooldown) {
+                    if (dist <= enemy.config.attackRange) {
+                        EnemyAttack.tryAttack(enemy, $gamePlayer);
+                    } else {
+                        event.moveTowardPlayer();
+                    }
 
                     if (dist > enemy.config.vision + 2) {
                         enemy.isChasing = false;

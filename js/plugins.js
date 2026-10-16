@@ -16,5 +16,6 @@ var $plugins =
 {"name":"abs/ABS_Core","status":true,"description":"ABS Core","parameters":{}},
 {"name":"abs/EnemyConfig","status":true,"description":"","parameters":{}},
 {"name":"abs/VisionCone","status":true,"description":"","parameters":{}},
-{"name":"abs/VisionVisualizer","status":true,"description":"","parameters":{}}
+{"name":"abs/VisionVisualizer","status":true,"description":"","parameters":{}},
+{"name":"abs/EnemyAttack","status":true,"description":"Sistema de ataques dos inimigos do ABS.","parameters":{}}
 ];
