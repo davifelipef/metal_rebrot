@@ -268,6 +268,17 @@
             0,
             Number(enemy.config.damage) || 0
         );
+        
+        // Debug
+        console.log("[ABS] DANO APLICADO:", {
+            enemyX: enemy.event.x,
+            enemyY: enemy.event.y,
+            playerX: player.x,
+            playerY: player.y,
+            dx: Math.abs(player.x - enemy.event.x),
+            dy: Math.abs(player.y - enemy.event.y),
+            damage
+        });
 
         actor.gainHp(-damage);
         actor.startDamagePopup();
@@ -318,20 +329,38 @@
 
             const dx = Math.abs(player.x - enemy.event.x);
             const dy = Math.abs(player.y - enemy.event.y);
-            const distance = Math.max(dx, dy);
 
-            const range = Math.max(
-                0,
-                Number(enemy.config.attackRange) || 0
-            );
-
-            if (distance > range) {
+            // O jogador precisa estar em uma casa adjacente,
+            // incluindo as quatro posições diagonais.
+            if (Math.max(dx, dy) !== 1) {
                 return false;
             }
 
-            // A recarga é registrada antes da execução do ataque,
-            // impedindo que chamadas consecutivas causem dano repetido.
+            // Impede ataques através de paredes ou outros obstáculos.
+            const cone = new VisionCone(
+                enemy.config.vision,
+                enemy.event.direction(),
+                enemy.event
+            );
+
+            if (!cone.hasLineOfSight(dx * Math.sign(player.x - enemy.event.x),
+                                    dy * Math.sign(player.y - enemy.event.y))) {
+                return false;
+            }
+
+            // Registra a recarga antes de executar o ataque.
             state.cooldown = getAttackCooldown(enemy);
+
+            //Debug
+            console.log("[ABS] ATAQUE EXECUTADO:", {
+                enemyX: enemy.event.x,
+                enemyY: enemy.event.y,
+                playerX: player.x,
+                playerY: player.y,
+                dx,
+                dy,
+                cooldown: state.cooldown
+            });
 
             tryAttackGraphic(enemy, state);
             playAttackAnimation(player);

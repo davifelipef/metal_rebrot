@@ -13,7 +13,7 @@ var $plugins =
 {"name":"Theo_SkipTitle","status":false,"description":"Skip Title Screen (and auto loads save game)","parameters":{"devmode":"true","skip":"true","load":"false","id":"0"}},
 {"name":"DFR_AutoColors","status":true,"description":"Auto color the registered words","parameters":{"C0":"[]","C1":"[]","C2":"[\"trolls\"]","C3":"[\"autorização\",\"permissão\",\"navio militar\",\"pussy party\",\"excelência\"]","C4":"[]","C5":"[]","C6":"[\"tecla a\",\"tecla x\",\"esc\"]","C7":"[]","C8":"[]","C9":"[]","C10":"[]","C11":"[]","C12":"[]","C13":"[]","C14":"[\"rebrotown\",\"rebr city\",\"raccoon city\",\"silent hill\",\"nersogrado\",\"base militar\"]","C15":"[]","C16":"[\"espada do allan\"]","C17":"[]","C18":"[\"reino dela\"]","C19":"[]","C20":"[\"Nelson\",\"Lucian\",\"Allan\",\"Celio\"]","C21":"[]","C22":"[]","C23":"[]","C24":"[]","C25":"[]","C26":"[]","C27":"[]","C28":"[]","C29":"[]","C30":"[]","C31":"[]"}},
 {"name":"DFR_MapWindow","status":false,"description":"[DFR] Altera a aparência da janela de nome de mapa.","parameters":{}},
-{"name":"abs/ABS_Core","status":true,"description":"ABS Core","parameters":{}},
+{"name":"abs/ABS_Core","status":true,"description":"ABS Core","parameters":{"debugVision":"true"}},
 {"name":"abs/EnemyConfig","status":true,"description":"","parameters":{}},
 {"name":"abs/VisionCone","status":true,"description":"","parameters":{}},
 {"name":"abs/VisionVisualizer","status":true,"description":"","parameters":{}},

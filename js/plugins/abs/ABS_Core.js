@@ -96,8 +96,7 @@ window.ABS_DEBUG_VISION = true;
             for (const enemy of this._enemies) {
                 const event = enemy.event;
 
-                // Atualiza os temporizadores do ataque.
-                // Enquanto estiver em recarga, o inimigo não se movimenta.
+                // Atualiza a recarga do ataque.
                 const isOnCooldown = EnemyAttack.update(enemy);
 
                 const cone = new VisionCone(
@@ -109,22 +108,24 @@ window.ABS_DEBUG_VISION = true;
                 const relX = $gamePlayer.x - event.x;
                 const relY = $gamePlayer.y - event.y;
 
-                // Verifica se o jogador está dentro do cone
-                // e se existe linha de visão desobstruída.
+                // O jogador só é detectado se estiver no cone
+                // e houver linha de visão desobstruída.
                 const canSeePlayer = cone.contains(relX, relY);
 
                 if (canSeePlayer) {
                     enemy.isChasing = true;
                 }
 
-                const dx = Math.abs($gamePlayer.x - event.x);
-                const dy = Math.abs($gamePlayer.y - event.y);
+                const dx = Math.abs(relX);
+                const dy = Math.abs(relY);
 
                 const dist = dx + dy;
-                const attackDistance = Math.max(dx, dy);
+                const isAdjacent = Math.max(dx, dy) === 1;
 
                 if (enemy.isChasing && !isOnCooldown) {
-                    if (attackDistance <= enemy.config.attackRange) {
+                    if (isAdjacent) {
+                        // O módulo de ataque também valida a distância
+                        // e a linha de visão antes de aplicar dano.
                         EnemyAttack.tryAttack(enemy, $gamePlayer);
                     } else {
                         event.moveTowardPlayer();
