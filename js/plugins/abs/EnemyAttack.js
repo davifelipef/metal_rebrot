@@ -4,6 +4,9 @@
  * @author Davi Felipe
  */
 
+// ID do evento comum executado quando o jogador sofre dano fatal.
+window.ABS_DEFEAT_COMMON_EVENT_ID = 1;
+
 (() => {
     "use strict";
 
@@ -19,6 +22,8 @@
     let playerFlashDuration = 0;
     let playerFlashSprite = null;
     let playerFlashLastUpdatedFrame = -1;
+
+    let defeatEventPending = false;
 
     function getState(enemy) {
         if (!attackStates.has(enemy)) {
@@ -48,8 +53,6 @@
             enemy.config.attackCooldown
         );
 
-        // Usa três segundos quando a configuração estiver ausente,
-        // inválida ou for zero, evitando ataques contínuos.
         const cooldownSeconds =
             Number.isFinite(configuredCooldown) &&
             configuredCooldown > 0
@@ -95,8 +98,6 @@
             return;
         }
 
-        // Atualiza o temporizador somente uma vez por frame,
-        // mesmo quando existem vários inimigos.
         if (playerFlashLastUpdatedFrame === Graphics.frameCount) {
             return;
         }
@@ -125,8 +126,6 @@
             return false;
         }
 
-        // O acesso ao sistema de arquivos só é possível no
-        // ambiente local do RPG Maker MZ baseado em NW.js.
         if (!Utils.isNwjs()) {
             return true;
         }
@@ -166,8 +165,6 @@
             unavailableGraphics.add(filename);
             return false;
         } catch (error) {
-            // Se não for possível verificar o arquivo, não
-            // tenta carregar um recurso opcional às cegas.
             unavailableGraphics.add(filename);
             return false;
         }
@@ -184,8 +181,6 @@
 
         const attackName = `${originalName}_atk`;
 
-        // Verifica a existência antes de solicitar o carregamento.
-        // Assim, um gráfico opcional ausente não interrompe o jogo.
         if (!attackGraphicExists(attackName)) {
             return;
         }
@@ -257,10 +252,36 @@
         }
     }
 
+    function triggerDefeatEvent() {
+        if (defeatEventPending) {
+            return;
+        }
+
+        const commonEventId = Number(
+            window.ABS_DEFEAT_COMMON_EVENT_ID
+        );
+
+        if (
+            !Number.isInteger(commonEventId) ||
+            commonEventId <= 0 ||
+            !$dataCommonEvents[commonEventId]
+        ) {
+            console.warn(
+                "[ABS] Invalid defeat common event ID:",
+                commonEventId
+            );
+            return;
+        }
+
+        defeatEventPending = true;
+
+        $gameTemp.reserveCommonEvent(commonEventId);
+    }
+
     function applyDamage(enemy, player) {
         const actor = $gameParty.leader();
 
-        if (!actor || actor.isDead()) {
+        if (!actor || actor.isDead() || defeatEventPending) {
             return;
         }
 
@@ -268,24 +289,24 @@
             0,
             Number(enemy.config.damage) || 0
         );
-        
-        // Debug
-        console.log("[ABS] DANO APLICADO:", {
-            enemyX: enemy.event.x,
-            enemyY: enemy.event.y,
-            playerX: player.x,
-            playerY: player.y,
-            dx: Math.abs(player.x - enemy.event.x),
-            dy: Math.abs(player.y - enemy.event.y),
-            damage
-        });
+
+        const isFatal = damage >= actor.hp && damage > 0;
+
+        if (isFatal) {
+            // Mantém o jogador vivo para evitar o Game Over.
+            actor.gainHp(-(actor.hp - 1));
+            actor.startDamagePopup();
+
+            flashPlayer(player);
+
+            // Executa o evento comum de recuperação.
+            triggerDefeatEvent();
+
+            return;
+        }
 
         actor.gainHp(-damage);
         actor.startDamagePopup();
-
-        if (actor.isDead()) {
-            actor.performCollapse();
-        }
 
         flashPlayer(player);
     }
@@ -317,55 +338,56 @@
                 }
             }
 
-            return state.cooldown > 0;
+            // Libera novos ataques após a recuperação do jogador.
+            if (defeatEventPending) {
+                const actor = $gameParty.leader();
+
+                if (actor && actor.hp > 1) {
+                    defeatEventPending = false;
+                }
+            }
+
+            return state.cooldown > 0 || defeatEventPending;
         },
 
         tryAttack(enemy, player) {
             const state = getState(enemy);
 
-            if (state.cooldown > 0) {
+            if (state.cooldown > 0 || defeatEventPending) {
                 return false;
             }
 
             const dx = Math.abs(player.x - enemy.event.x);
             const dy = Math.abs(player.y - enemy.event.y);
 
-            // O jogador precisa estar em uma casa adjacente,
-            // incluindo as quatro posições diagonais.
+            // Permite ataques em casas adjacentes,
+            // incluindo as diagonais.
             if (Math.max(dx, dy) !== 1) {
                 return false;
             }
 
-            // Impede ataques através de paredes ou outros obstáculos.
             const cone = new VisionCone(
                 enemy.config.vision,
                 enemy.event.direction(),
                 enemy.event
             );
 
-            if (!cone.hasLineOfSight(dx * Math.sign(player.x - enemy.event.x),
-                                    dy * Math.sign(player.y - enemy.event.y))) {
+            if (!cone.hasLineOfSight(
+                dx * Math.sign(player.x - enemy.event.x),
+                dy * Math.sign(player.y - enemy.event.y)
+            )) {
                 return false;
             }
 
-            // Registra a recarga antes de executar o ataque.
             state.cooldown = getAttackCooldown(enemy);
-
-            //Debug
-            console.log("[ABS] ATAQUE EXECUTADO:", {
-                enemyX: enemy.event.x,
-                enemyY: enemy.event.y,
-                playerX: player.x,
-                playerY: player.y,
-                dx,
-                dy,
-                cooldown: state.cooldown
-            });
 
             tryAttackGraphic(enemy, state);
             playAttackAnimation(player);
             applyDamage(enemy, player);
-            knockbackPlayer(enemy.event, player);
+
+            if (!defeatEventPending) {
+                knockbackPlayer(enemy.event, player);
+            }
 
             return true;
         }
